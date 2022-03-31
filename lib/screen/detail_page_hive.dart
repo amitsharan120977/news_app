@@ -1,6 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../model/hive/article.dart';
 
@@ -54,7 +55,7 @@ class _DetailHiveState extends State<DetailHive> {
                 width: 10,
               ),
               SizedBox(
-                width: 300,
+                width: MediaQuery.of(context).size.width - 200,
                 child: Text(
                   widget.article.description!,
                   style: GoogleFonts.lobster(
@@ -62,6 +63,41 @@ class _DetailHiveState extends State<DetailHive> {
                       fontWeight: FontWeight.w400,
                       color: Colors.black),
                 ),
+              ),
+            ],
+          ),
+          const SizedBox(
+            height: 100,
+          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(16),
+                width: MediaQuery.of(context).size.width * 0.8,
+                decoration: const BoxDecoration(
+                    color: Color.fromARGB(255, 6, 81, 167),
+                    borderRadius: BorderRadius.only(
+                        topLeft: Radius.circular(30),
+                        bottomLeft: Radius.circular(30))),
+                child: widget.article.url == null
+                    ? const SizedBox()
+                    : TextButton(
+                        onPressed: () async {
+                          final urL = widget.article.url!;
+                          if (await canLaunch(urL)) {
+                            await launch(urL);
+                          } else {
+                            throw "Can't launch $urL";
+                          }
+                        },
+                        child: Text(
+                          widget.article.url!,
+                          style: const TextStyle(
+                              color: Color.fromARGB(255, 207, 221, 233)),
+                          maxLines: 10,
+                        ),
+                      ),
               ),
             ],
           ),

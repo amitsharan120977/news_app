@@ -32,30 +32,26 @@ dependencies:
  flutter:
     sdk: flutter
  flutter_screenutil: ^5.2.0
- flutter_svg: ^1.0.3
  url_launcher: ^6.0.20
  cached_network_image:
  isar:
  isar_flutter_libs:
+ intl:   
  hive:
  hive_flutter:
  http: ^0.13.4
- network_to_file_image: ^3.1.0
  password_strength: ^0.2.0
  path_provider: ^2.0.9
- stacked_services:
- stacked:
- injectable:
  google_fonts:
+ toggle_switch: ^1.4.0
 
 
 dev_dependencies:
+  dependency_validator: ^3.0.0
   flutter_lints: ^1.0.0
   build_runner:
   hive_generator:
   isar_generator:
-  auto_route_generator:
-  injectable_generator:
   flutter_test:
     sdk: flutter
 

@@ -1,13 +1,17 @@
 import 'dart:convert';
 import 'package:http/http.dart';
+import 'package:intl/intl.dart';
 import 'article.dart';
 import 'hive_service.dart';
 
 class Services {
   HiveServices hiveservices = HiveServices();
-  Future<List<HArticle>> getArticle(String api) async {
+  Future<List<HArticle>> getArticle(String api,
+      {String topic = "india"}) async {
+    DateTime now = DateTime.now();
+    String today = DateFormat("yyyy-MM-dd").format(now);
     final apiUrl =
-        "https://newsapi.org/v2/everything?q=apple&from=2022-02-21&to=2022-02-21&sortBy=popularity&apiKey=$api";
+        "https://newsapi.org/v2/everything?q=$topic&from=$today&sortBy=popularity&apiKey=$api";
 
     List<HArticle> newsModel = [];
     try {

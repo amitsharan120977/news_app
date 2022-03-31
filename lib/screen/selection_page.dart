@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:hive/hive.dart';
 import 'package:isar/isar.dart';
-
+import 'package:toggle_switch/toggle_switch.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import 'home_hive.dart';
@@ -16,73 +16,98 @@ class SelectionPage extends StatefulWidget {
 }
 
 class _SelectionPageState extends State<SelectionPage> {
+  final magicBox = Hive.box('MagicBox');
   TextEditingController apiKeyController = TextEditingController();
   @override
   Widget build(BuildContext context) {
-    return ScreenUtilInit(
-        designSize: const Size(411.42857142857144, 876.5714285714286),
-        minTextAdapt: true,
-        splitScreenMode: true,
-        builder: () => Scaffold(
-              appBar: AppBar(
-                title: const Text("Selection Page"),
-              ),
-              body: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
+    return Scaffold(
+      body: Center(
+        child: SizedBox(
+          height: MediaQuery.of(context).size.height / 2,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              Row(
                 children: [
-                  TextFormField(
-                    controller: apiKeyController,
-                    decoration: const InputDecoration(
-                        hintText: "Enter your API key here",
-                        border:
-                            OutlineInputBorder(borderSide: BorderSide.none)),
+                  const Padding(
+                    padding: EdgeInsets.all(8.0),
+                    child: Text("Get API key from"),
                   ),
-                  Row(
-                    children: [
-                      const Padding(
-                        padding: EdgeInsets.all(8.0),
-                        child: Text("Get API key from"),
-                      ),
-                      TextButton(
-                          onPressed: () async {
-                            const urL = "https://newsapi.org/";
-                            if (await canLaunch(urL)) {
-                              await launch(urL);
-                            } else {
-                              throw "Can't launch $urL";
-                            }
-                          },
-                          child: const Text("https://newsapi.org/")),
-                    ],
+                  TextButton(
+                      onPressed: () async {
+                        const urL = "https://newsapi.org/";
+                        if (await canLaunch(urL)) {
+                          await launch(urL);
+                        } else {
+                          throw "Can't launch $urL";
+                        }
+                      },
+                      child: const Text("https://newsapi.org/")),
+                ],
+              ),
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: TextFormField(
+                  controller: apiKeyController,
+                  decoration: const InputDecoration(
+                      labelText: "Api key ",
+                      hintText: "Enter your API key here",
+                      border: OutlineInputBorder(
+                          borderSide: BorderSide(
+                              width: 1,
+                              color: Color.fromARGB(255, 93, 121, 134)))),
+                ),
+              ),
+              Row(
+                children: [
+                  const Padding(
+                    padding: EdgeInsets.only(left: 8.0, right: 100),
+                    child: Text(
+                      "Database",
+                    ),
                   ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      TextButton(
-                          onPressed: () {
+                  SizedBox(
+                    width: 0.25 * MediaQuery.of(context).size.width,
+                    child: ToggleSwitch(
+                      initialLabelIndex: 0,
+                      totalSwitches: 2,
+                      labels: const ['Isar', 'Hive'],
+                      onToggle: (index) {
+                        if (index == 0) {
+                          if (apiKeyController.text.isEmpty) {
+                          } else {
+                            magicBox.put("apikey", apiKeyController.text);
+                            magicBox.put("database", 0);
                             Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                    builder: (context) => HomePage(
+                                    builder: (context) => HomePageIsar(
                                           isar: widget.isar,
-                                          apiKey1: apiKeyController.text,
+                                          apiKey: apiKeyController.text,
                                         )));
-                          },
-                          child: const Text(" Submit for ISAR database")),
-                      TextButton(
-                          onPressed: () {
+                          }
+                        } else {
+                          if (apiKeyController.text.isEmpty) {
+                          } else {
+                            magicBox.put("apikey", apiKeyController.text);
+                            magicBox.put("database", 1);
                             Navigator.push(
                                 context,
                                 MaterialPageRoute(
                                     builder: (context) => HomePageHive(
                                           apiKey: apiKeyController.text,
                                         )));
-                          },
-                          child: const Text("Submit for HIVE database"))
-                    ],
+                          }
+                        }
+                      },
+                    ),
                   ),
                 ],
               ),
-            ));
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }

@@ -3,87 +3,122 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:isar/isar.dart';
 
-import '../model/isar/api_service_isar.dart';
+import '../model/isar/api_service.dart';
 import '../model/isar/article.dart';
 import 'detail_page_isar.dart';
 
-class HomePage extends StatefulWidget {
-  final String apiKey1;
+class HomePageIsar extends StatefulWidget {
+  final String apiKey;
   final Isar isar;
-  const HomePage({Key? key, required this.isar, required this.apiKey1})
+  const HomePageIsar({Key? key, required this.isar, required this.apiKey})
       : super(key: key);
 
   @override
-  _HomePageState createState() => _HomePageState();
+  _HomePageIsarState createState() => _HomePageIsarState();
 }
 
-class _HomePageState extends State<HomePage> {
+class _HomePageIsarState extends State<HomePageIsar> {
   Services services = Services();
+  final topicController = TextEditingController();
+  List<IArticle>? articles;
+  String searchTopic = "india";
   @override
   void initState() {
     super.initState();
+    fetchNews();
+  }
+
+  fetchNews() async {
+    List<IArticle>? newArticles = await services.getArticle(
+        widget.isar, widget.apiKey,
+        topic: topicController.text.isEmpty ? "india" : topicController.text);
+    setState(() {
+      articles = newArticles;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: 'Home Page',
-      theme: ThemeData(
-          primarySwatch: Colors.yellow,
-          appBarTheme: AppBarTheme(backgroundColor: Colors.yellow.shade800)),
-      home: Scaffold(
+    return Scaffold(
         appBar: AppBar(
-          title: const Text('Home Page'),
+          title: TextField(
+            controller: topicController,
+            decoration: const InputDecoration(
+                filled: true,
+                fillColor: Color.fromARGB(255, 154, 189, 218),
+                hintText: "Search news topic here",
+                border: OutlineInputBorder(
+                    borderSide: BorderSide(
+                        width: 1, color: Color.fromARGB(255, 93, 121, 134)))),
+          ),
+          actions: [
+            IconButton(
+                onPressed: () async {
+                  setState(() {
+                    searchTopic = topicController.text.isEmpty
+                        ? "india"
+                        : topicController.text;
+                  });
+                  List<IArticle>? newArticles = await services.getArticle(
+                      widget.isar, widget.apiKey,
+                      topic: topicController.text.isEmpty
+                          ? "india"
+                          : topicController.text);
+                  setState(() {
+                    articles = newArticles;
+                  });
+                },
+                icon: const Icon(Icons.search))
+          ],
         ),
-        body: Center(
-          child: FutureBuilder<List<IArticle>>(
-            future: services.getArticle(widget.isar, widget.apiKey1),
-            builder: (context, AsyncSnapshot<List<IArticle>> snapshot) {
-              if (snapshot.hasData) {
-                List<IArticle>? articles = snapshot.data;
-
-                return ListView.builder(
-                  itemCount: articles!.length,
-                  itemBuilder: (context, index) => ListTile(
-                    title: SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      child: InkWell(
-                        onTap: () {
-                          Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (context) => DetailIsar(
-                                        article: articles[index],
-                                      )));
-                        },
-                        child: Row(
-                          children: [
-                            CachedNetworkImage(
-                              imageUrl: articles[index].urlToImage ??
-                                  "https://dummyimage.com/100x100/ffffff/000800&text=No+Image",
-                              placeholder: (context, url) =>
-                                  const CircularProgressIndicator(),
-                              errorWidget: (context, url, error) =>
-                                  const Icon(Icons.error),
-                              width: 100,
-                              height: 100,
-                            ),
-                            Text(articles[index].title!,
-                                style: GoogleFonts.lato(color: Colors.black)),
-                          ],
+        body: RefreshIndicator(
+            onRefresh: () async {
+              List<IArticle>? newArticles = await services
+                  .getArticle(widget.isar, widget.apiKey, topic: searchTopic);
+              setState(() {
+                articles = newArticles;
+              });
+            },
+            child: articles == null
+                ? const CircularProgressIndicator()
+                : ListView.builder(
+                    itemCount: articles!.length,
+                    itemBuilder: (context, index) => ListTile(
+                      title: SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: InkWell(
+                          onTap: () {
+                            Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) => DetailIsar(
+                                          article: articles![
+                                              articles!.length - 1 - index],
+                                        )));
+                          },
+                          child: Row(
+                            children: [
+                              CachedNetworkImage(
+                                imageUrl: articles![
+                                            articles!.length - 1 - index]
+                                        .urlToImage ??
+                                    "https://dummyimage.com/100x100/ffffff/000800&text=No+Image",
+                                placeholder: (context, url) => const Center(
+                                    child: CircularProgressIndicator()),
+                                errorWidget: (context, url, error) =>
+                                    const Icon(Icons.error),
+                                width: 100,
+                                height: 100,
+                              ),
+                              Text(
+                                  articles![articles!.length - 1 - index]
+                                      .title!,
+                                  style: GoogleFonts.lato(color: Colors.black)),
+                            ],
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                );
-              }
-
-              return const CircularProgressIndicator();
-            },
-          ),
-        ),
-      ),
-    );
+                  )));
   }
 }

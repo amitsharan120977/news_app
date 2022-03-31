@@ -1,19 +1,22 @@
 import 'dart:convert';
 
 import 'package:http/http.dart';
+import 'package:intl/intl.dart';
 import 'package:isar/isar.dart';
 
 import '../hive/source.dart';
 import 'article.dart';
 import 'isar_service.dart';
 
-
 class Services {
   IsarService isarService = IsarService();
 
-  Future<List<IArticle>> getArticle(Isar isar, String api) async {
+  Future<List<IArticle>> getArticle(Isar isar, String api,
+      {String topic = "india"}) async {
+    DateTime now = DateTime.now();
+    String today = DateFormat("yyyy-MM-dd").format(now);
     final endPointurl =
-        "https://newsapi.org/v2/everything?q=tesla&from=2022-02-19&sortBy=publishedAt&apiKey=$api";
+        "https://newsapi.org/v2/everything?q=$topic&$today&sortBy=publishedAt&apiKey=$api";
 
     List<IArticle> newsModels = [];
     try {
@@ -37,7 +40,6 @@ class Services {
           newsModels.add(article);
         }).toList();
         newsModels = await isarService.addSchema(isar, newsModels);
-        // print(newsModels.length);
         return newsModels;
       } else {
         newsModels = await isarService.getSchema(isar);
